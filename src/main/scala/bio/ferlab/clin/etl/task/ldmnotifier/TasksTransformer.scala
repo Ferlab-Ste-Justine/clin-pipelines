@@ -1,22 +1,25 @@
 package bio.ferlab.clin.etl.task.ldmnotifier
 
-import bio.ferlab.clin.etl.task.ldmnotifier.model.Task
+import bio.ferlab.clin.etl.task.ldmnotifier.model.{Attachments, Task}
 
 object TasksTransformer {
-  private def flatMapTaskOutputToAttachmentUrls(task: Task): Seq[String] = {
-    task.output.flatMap(output => output.valueReference.resource.content.map(_.attachment.url))
+  private type AliasUrlValues = (String, Seq[String])
+
+  private type AliasToUrlValues = Map[String, Seq[String]]
+
+  private def mapAttachmentsToUrlValues(attachments: Attachments): Seq[String] = {
+    attachments.urls.map(url => url.url)
   }
 
-  private def mapEachOfTaskAliasesToAttachmentUrls(task: Task) = {
-    task.owner.resource.alias.map(alias => (alias, flatMapTaskOutputToAttachmentUrls(task)))
+  private def retainOnlyDistinctUrlValuesForEachGroup(aliasToUrlsForAllTasks: Seq[AliasUrlValues] )= {
+    val flattenedUrlValues = aliasToUrlsForAllTasks.flatMap(tupleAliasUrlValues => tupleAliasUrlValues._2)
+    flattenedUrlValues.distinct
   }
 
-  private def retainOnlyDistinctUrlsForEachGroup(aliasToUrls: Seq[(String, Seq[String])]) = {
-    aliasToUrls.flatMap(_._2).distinct
-  }
-
-  def groupAttachmentUrlsByEachOfOwnerAliases(tasks: Seq[Task]): Map[String, Seq[String]] = {
-    val aliasToAttachmentUrls = tasks.flatMap(mapEachOfTaskAliasesToAttachmentUrls)
-    aliasToAttachmentUrls.groupBy(_._1).mapValues(retainOnlyDistinctUrlsForEachGroup)
+  def groupAttachmentUrlsByEachOfOwnerAliases(tasks: Seq[Task]): AliasToUrlValues = {
+    val aliasesToUrlsFromEachTask = tasks.map(task => (task.owner.alias, mapAttachmentsToUrlValues(task.attachments)))
+    aliasesToUrlsFromEachTask
+      .groupBy(tupleAliasUrlValue => tupleAliasUrlValue._1)
+      .mapValues(retainOnlyDistinctUrlValuesForEachGroup)
   }
 }

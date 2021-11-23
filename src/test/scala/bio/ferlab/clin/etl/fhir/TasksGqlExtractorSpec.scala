@@ -17,7 +17,6 @@ class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
     And("their size be the same as in the raw data")
     val tasks = either.right.get
     tasks.size shouldBe 4
-    println(tasks)//TODO
   }
 }
 

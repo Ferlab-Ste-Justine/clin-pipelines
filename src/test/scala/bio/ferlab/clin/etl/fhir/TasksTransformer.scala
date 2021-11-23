@@ -9,61 +9,40 @@ class TasksTransformer extends FlatSpec with GivenWhenThen {
   def makeFakeTask(): Seq[Task] = {
     val Task1Ldm1 = new Task(
       id = "task1",
-      owner = new Owner(resource = new OwnerResource(id = "LDM1", alias = Seq("LDM1"))),
-      output = Seq(new Output(valueReference = new ValueReference(
-        reference = "DocumentReference/1",
-        resource = new OutputResource(
-          id = "DocumentReference/1/_history/1",
-          content = Seq(
-            new Content(new Attachment(url = "url1-LDM1")),
-          )
-        )))))
+      owner = new Owner(id = "LDM1", alias = "LDM1"),
+      attachments =
+        new Attachments(urls = Seq(new Url(url = "url1-LDM1")))
+    )
 
     val Task2Ldm1 = new Task(
       id = "task2",
-      owner = new Owner(resource = new OwnerResource(id = "LDM1", alias = Seq("LDM1"))),
-      output = Seq(new Output(valueReference = new ValueReference(
-        reference = "DocumentReference/2",
-        resource = new OutputResource(
-          id = "DocumentReference/2/_history/1",
-          content = Seq(
-            new Content(new Attachment(url = "url2-LDM1"))
-          )
-        )))))
+      owner = new Owner(id = "LDM1", alias = "LDM1"),
+      attachments =
+        new Attachments(urls = Seq(new Url(url = "url1-LDM1"), new Url(url = "url2-LDM1")))
+    )
 
     val Task3Ldm2 = new Task(
       id = "task3",
-      owner = new Owner(resource = new OwnerResource(id = "LDM2", alias = Seq("LDM2"))),
-      output = Seq(new Output(valueReference = new ValueReference(
-        reference = "DocumentReference/3",
-        resource = new OutputResource(
-          id = "DocumentReference/3/_history/1",
-          content = Seq(
-            new Content(new Attachment(url = "url1-LDM2")),
-            new Content(new Attachment(url = "url2-LDM2"))
-          )
-        )))))
+      owner = new Owner(id = "LDM2", alias = "LDM2"),
+      attachments =
+        new Attachments(urls = Seq(new Url(url = "url1-LDM2")))
+    )
 
     val Task4Ldm3 = new Task(
       id = "task4",
-      owner = new Owner(resource = new OwnerResource(id = "LDM3", alias = Seq("LDM3"))),
-      output = Seq(new Output(valueReference = new ValueReference(
-        reference = "DocumentReference/4",
-        resource = new OutputResource(
-          id = "DocumentReference/4/_history/1",
-          content = Seq(
-            new Content(new Attachment(url = "url1-LDM3"))
-          )
-        )))))
+      owner = new Owner(id = "LDM3", alias = "LDM3"),
+      attachments =
+        new Attachments(urls = Seq(new Url(url = "url1-LDM3"), new Url(url = "url2-LDM3")))
+    )
 
     Seq(Task1Ldm1, Task2Ldm1, Task3Ldm2, Task4Ldm3)
   }
 
   "Attachments urls in tasks" should "be grouped by each of their aliases" in {
-    Given("4 tasks having aliases and attachments")
+    Given("4 tasks having aliases and attachments (possibly with duplicates)")
     val tasks = makeFakeTask()
 
-    Then("all attachments should be grouped by each of their aliases")
+    Then("all attachments (more precisely, url values) should be grouped by each of their alias")
     val aliasToUrls = TasksTransformer.groupAttachmentUrlsByEachOfOwnerAliases(tasks)
     aliasToUrls.isEmpty shouldBe false
 
@@ -71,8 +50,8 @@ class TasksTransformer extends FlatSpec with GivenWhenThen {
     aliasToUrls.size shouldBe 3
 
     And("each alias should have the corresponding urls with no duplicates")
-    aliasToUrls.get("LDM3") shouldBe Some(Vector("url1-LDM3"))
-    aliasToUrls.get("LDM2") shouldBe Some(Vector("url1-LDM2", "url2-LDM2"))
-    aliasToUrls.get("LDM1") shouldBe Some(Vector("url1-LDM1", "url2-LDM1"))
+    aliasToUrls.get("LDM3") shouldBe Some(List("url1-LDM3", "url2-LDM3"))
+    aliasToUrls.get("LDM2") shouldBe Some(List("url1-LDM2"))
+    aliasToUrls.get("LDM1") shouldBe Some(List("url1-LDM1", "url2-LDM1"))
   }
 }
