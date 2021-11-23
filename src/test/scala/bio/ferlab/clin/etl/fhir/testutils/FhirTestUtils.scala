@@ -6,12 +6,14 @@ import org.hl7.fhir.instance.model.api.{IBaseResource, IIdType}
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender
 import org.hl7.fhir.r4.model._
 import org.slf4j.{Logger, LoggerFactory}
+import play.api.libs.json.{JsValue, Json}
 
 import java.io.File
 import java.net.URL
 import java.time.{LocalDate, ZoneId}
 import java.util.{Collections, Date}
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 object FhirTestUtils {
   val DEFAULT_ZONE_ID: ZoneId = ZoneId.of("UTC")
@@ -29,7 +31,7 @@ object FhirTestUtils {
     id.getIdPart
   }
 
-  def loadCQGCOrganization()(implicit fhirClient: IGenericClient):String = {
+  def loadCQGCOrganization()(implicit fhirClient: IGenericClient): String = {
     val cqgc: Organization = new Organization()
     cqgc.setId("222")
     cqgc.setName("CQGC")
@@ -72,7 +74,7 @@ object FhirTestUtils {
 
   }
 
-  def loadSpecimen(patientId: String, lab: String = "CHUSJ", submitterId: String = "1", specimenType: String = "NBL", parent: Option[String] = None, level:String="specimen")(implicit fhirClient: IGenericClient): String = {
+  def loadSpecimen(patientId: String, lab: String = "CHUSJ", submitterId: String = "1", specimenType: String = "NBL", parent: Option[String] = None, level: String = "specimen")(implicit fhirClient: IGenericClient): String = {
     val sp = new Specimen()
     sp.setSubject(new Reference(s"Patient/$patientId"))
 
@@ -160,8 +162,21 @@ object FhirTestUtils {
     } else {
       Source.fromURL(resourceUrl).mkString
     }
+  }
 
-
+  def parseJsonFromResource(resourceName: String): Try[JsValue] = {
+    val source = Source.fromResource(resourceName)
+    try {
+      val strJson = source.mkString
+      val parsedJson = Json.parse(strJson)
+      Success(parsedJson)
+    } catch {
+      case e: Exception => {
+        Failure(e)
+      }
+    } finally {
+      source.close()
+    }
   }
 }
 
