@@ -1,0 +1,127 @@
+{
+  "data": {
+    "TaskList": [
+      {
+        "id": "Task/50040/_history/1",
+        "owner": {
+          "resource": {
+            "id": "Organization/LDM-CHUSJ/_history/1",
+            "alias": [
+              "LDM1"
+            ]
+          }
+        },
+        "output": [
+          {
+            "valueReference": {
+              "reference": "DocumentReference/50037",
+              "resource": {
+                "id": "DocumentReference/50037/_history/1",
+                "content": [
+                  {
+                    "attachment": {
+                      "url": "url1-LDM1"
+                    }
+                  },
+                  {
+                    "attachment": {
+                      "url": "url2-LDM1"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "Task/49606/_history/1",
+        "owner": {
+          "resource": {
+            "id": "Organization/LDM-CHUSJ/_history/1",
+            "alias": [
+              "LDM2"
+            ]
+          }
+        },
+        "output": [
+          {
+            "valueReference": {
+              "reference": "DocumentReference/49603",
+              "resource": {
+                "id": "DocumentReference/49603/_history/1",
+                "content": [
+                  {
+                    "attachment": {
+                      "url": "url1-LDM2"
+                    }
+                  },
+                  {
+                    "attachment": {
+                      "url": "url2-LDM2"                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "Task/49596/_history/1",
+        "owner": {
+          "resource": {
+            "id": "Organization/LDM-CHUSJ/_history/1",
+            "alias": [
+              "LDM3"
+            ]
+          }
+        },
+        "output": [
+          {
+            "valueReference": {
+              "reference": "DocumentReference/49593",
+              "resource": {
+                "id": "DocumentReference/49593/_history/1",
+                "content": [
+                  {
+                    "attachment": {
+                      "url": "url1-LDM3"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "Task/49576/_history/1",
+        "owner": {
+          "resource": {
+            "id": "Organization/LDM-CHUSJ/_history/1",
+            "alias": [
+              "LDM1"
+            ]
+          }
+        },
+        "output": [
+          {
+            "valueReference": {
+              "reference": "DocumentReference/49573",
+              "resource": {
+                "id": "DocumentReference/49573/_history/1",
+                "content": [
+                  {
+                    "attachment": {
+                      "url": "url1-LDM1"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
