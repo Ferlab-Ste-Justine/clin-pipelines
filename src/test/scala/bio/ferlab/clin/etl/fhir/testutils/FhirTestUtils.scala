@@ -128,6 +128,7 @@ object FhirTestUtils {
       "extensions/StructureDefinition-sequencing-experiment.json",
       "extensions/StructureDefinition-full-size.json",
       "profiles/StructureDefinition-cqgc-analysis-task.json",
+      "search/SearchParameter-run-name.json"
 
     ).foreach(downloadAndCreate)
 
