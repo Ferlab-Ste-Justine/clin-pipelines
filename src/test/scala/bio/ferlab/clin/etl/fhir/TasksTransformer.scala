@@ -7,34 +7,26 @@ import org.scalatest.{FlatSpec, GivenWhenThen}
 
 class TasksTransformer extends FlatSpec with GivenWhenThen {
   def makeFakeTask(): Seq[Task] = {
-    val Task1Ldm1 = new Task(
+    val Task1Ldm1 = Task(
       id = "task1",
-      owner = new Owner(id = "LDM1", alias = "LDM1"),
-      attachments =
-        new Attachments(urls = Seq(new Url(url = "url1-LDM1")))
+      owner = Owner(id = "LDM1", alias = "LDM1"),
+      attachments = Attachments(urls = Seq(Url(url = "url1-LDM1")))
     )
-
-    val Task2Ldm1 = new Task(
+    val Task2Ldm1 = Task(
       id = "task2",
-      owner = new Owner(id = "LDM1", alias = "LDM1"),
-      attachments =
-        new Attachments(urls = Seq(new Url(url = "url1-LDM1"), new Url(url = "url2-LDM1")))
+      owner = Owner(id = "LDM1", alias = "LDM1"),
+      attachments = Attachments(urls = Seq(Url(url = "url1-LDM1"), Url(url = "url2-LDM1")))
     )
-
-    val Task3Ldm2 = new Task(
+    val Task3Ldm2 = Task(
       id = "task3",
-      owner = new Owner(id = "LDM2", alias = "LDM2"),
-      attachments =
-        new Attachments(urls = Seq(new Url(url = "url1-LDM2")))
+      owner = Owner(id = "LDM2", alias = "LDM2"),
+      attachments = Attachments(urls = Seq(Url(url = "url1-LDM2")))
     )
-
-    val Task4Ldm3 = new Task(
+    val Task4Ldm3 = Task(
       id = "task4",
-      owner = new Owner(id = "LDM3", alias = "LDM3"),
-      attachments =
-        new Attachments(urls = Seq(new Url(url = "url1-LDM3"), new Url(url = "url2-LDM3")))
+      owner = Owner(id = "LDM3", alias = "LDM3"),
+      attachments = Attachments(urls = Seq(Url(url = "url1-LDM3"), Url(url = "url2-LDM3")))
     )
-
     Seq(Task1Ldm1, Task2Ldm1, Task3Ldm2, Task4Ldm3)
   }
 
