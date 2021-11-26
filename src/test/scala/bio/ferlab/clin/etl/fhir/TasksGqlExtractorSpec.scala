@@ -7,11 +7,10 @@ import org.scalatest.{FlatSpec, GivenWhenThen}
 
 class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
   "buildGqlTasksQueryHttpPostBody" should "give a correct http post body" in {
-    Given("a runName 'abc' ")
+    Given("a runName (for example, 'abc') ")
     val runName = "abc"
     Then("a correct graphql query should be produced")
-    val httpBody = TasksGqlExtractor.buildGqlTasksQueryHttpPostBody("abc")
-    println(httpBody)
+    val httpBody = TasksGqlExtractor.buildGqlTasksQueryHttpPostBody(runName)
     httpBody shouldBe "{ \"query\": \"\\n{\\n\\ttaskList: TaskList(run_name: \\\"abc\\\") {\\n\\t\\tid\\n\\t    owner @flatten {\\n\\t\\t  owner: resource(type: Organization) {\\n\\t\\t\\t\\tid\\n\\t\\t\\t\\talias @first @singleton\\n\\t\\t\\t}\\n\\t\\t}\\n\\t\\t output @flatten {\\n\\t\\t\\tvalueReference @flatten {\\n\\t\\t\\t\\tattachments: resource(type: DocumentReference) {\\n                     content @flatten {\\n\\t\\t\\t\\t\\t\\t urls: attachment {\\n\\t\\t\\t\\t\\t\\t\\turl\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t}\\n\\t\\t\\t}\\n\\t\\t}\\n\\t}\\n}\\n\\n\" }"
   }
 
@@ -23,7 +22,7 @@ class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
     val hasError = eitherErrorOrData.isLeft
     hasError shouldBe false
     And("reports that there is no data, as well")
-    val hasData =  eitherErrorOrData.right.get
+    val hasData = eitherErrorOrData.right.get
     hasData shouldBe false
   }
 

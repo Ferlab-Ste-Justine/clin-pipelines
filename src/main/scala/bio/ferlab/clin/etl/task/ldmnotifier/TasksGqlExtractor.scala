@@ -2,8 +2,12 @@ package bio.ferlab.clin.etl.task.ldmnotifier
 
 import bio.ferlab.clin.etl.task.ldmnotifier.model.{GqlResponse, Task}
 import play.api.libs.json._
+import sttp.client3.{HttpURLConnectionBackend, Identity, Response, UriContext, basicRequest}
+import sttp.model.MediaType
 
 object TasksGqlExtractor {
+  private type TasksResponse = Identity[Response[Either[String, String]]]
+
   def buildGqlTasksQueryHttpPostBody(runName: String): String = {
     val query = s"""
                  |{
@@ -30,14 +34,24 @@ object TasksGqlExtractor {
                  |}
                  |
                  |""".stripMargin
-
     s"""{ "query": ${JsString(query)} }"""
+  }
+
+  def fetchTasksFromFhir(baseUrl: String, token: String, runName: String): TasksResponse = {
+    val backend = HttpURLConnectionBackend()
+    val response = basicRequest
+      .headers(Map("Authorization" -> s"Bearer $token"))
+      .contentType(MediaType.ApplicationJson)
+      .body(buildGqlTasksQueryHttpPostBody(runName))
+      .post(uri"$baseUrl/${"$graphql"}?_count=1000")
+      .send(backend)
+    backend.close
+    response
   }
 
   def checkIfGqlResponseHasData(json: JsValue): Either[String, Boolean] = {
     (json).validate[GqlResponse].fold(
       invalid => {
-        println("invalid", invalid)
         Left(s"Errors: ${JsError.toJson(invalid)}")
       },
       valid => {

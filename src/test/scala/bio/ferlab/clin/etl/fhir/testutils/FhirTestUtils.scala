@@ -158,10 +158,15 @@ object FhirTestUtils {
       val remoteUrl = new URL(s"$ROOT_REMOTE_EXTENSION/$p")
       val resourcePath = s"${getClass.getResource("/").getPath}/fhir_extensions/$p"
       FileUtils.copyURLToFile(remoteUrl, new File(resourcePath))
-      val content = Source.fromFile(resourcePath).mkString
+      val source = Source.fromFile(resourcePath)
+      val content = source.mkString
+      source.close()
       content
     } else {
-      Source.fromURL(resourceUrl).mkString
+      val source = Source.fromURL(resourceUrl)
+      val content = source.mkString
+      source.close()
+      content
     }
   }
 
@@ -171,6 +176,20 @@ object FhirTestUtils {
       val strJson = source.mkString
       val parsedJson = Json.parse(strJson)
       Success(parsedJson)
+    } catch {
+      case e: Exception => {
+        Failure(e)
+      }
+    } finally {
+      source.close()
+    }
+  }
+
+  def getStringJsonFromResource(resourceName: String): Try[String] = {
+    val source = Source.fromResource(resourceName)
+    try {
+      val strJson = source.mkString
+      Success(strJson)
     } catch {
       case e: Exception => {
         Failure(e)
