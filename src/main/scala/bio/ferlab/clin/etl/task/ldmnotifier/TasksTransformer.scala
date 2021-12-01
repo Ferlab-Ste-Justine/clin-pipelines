@@ -11,7 +11,7 @@ object TasksTransformer {
     attachments.urls.map(url => url.url)
   }
 
-  private def retainOnlyDistinctUrlValuesForEachGroup(aliasToUrlsForAllTasks: Seq[AliasUrlValues] )= {
+  private def retainOnlyDistinctUrlValuesForEachGroup(aliasToUrlsForAllTasks: Seq[AliasUrlValues])= {
     val flattenedUrlValues = aliasToUrlsForAllTasks.flatMap(tupleAliasUrlValues => tupleAliasUrlValues._2)
     flattenedUrlValues.distinct
   }

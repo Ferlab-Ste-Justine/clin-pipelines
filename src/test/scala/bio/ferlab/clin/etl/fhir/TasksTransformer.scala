@@ -1,7 +1,7 @@
 package bio.ferlab.clin.etl.fhir
 
-import bio.ferlab.clin.etl.task.ldmnotifier.TasksTransformer
-import bio.ferlab.clin.etl.task.ldmnotifier.model._
+import bio.ferlab.clin.etl.task.ldmnotifier.{TasksTransformer => Transformer}
+import bio.ferlab.clin.etl.task.ldmnotifier.model.{Attachments, Owner, Task, Url}
 import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatest.{FlatSpec, GivenWhenThen}
 
@@ -35,7 +35,7 @@ class TasksTransformer extends FlatSpec with GivenWhenThen {
     val tasks = makeFakeTask()
 
     Then("all attachments (more precisely, url values) should be grouped by each of their alias")
-    val aliasToUrls = TasksTransformer.groupAttachmentUrlsByEachOfOwnerAliases(tasks)
+    val aliasToUrls = Transformer.groupAttachmentUrlsByEachOfOwnerAliases(tasks)
     aliasToUrls.isEmpty shouldBe false
 
     And("this very group should have the correct size")
