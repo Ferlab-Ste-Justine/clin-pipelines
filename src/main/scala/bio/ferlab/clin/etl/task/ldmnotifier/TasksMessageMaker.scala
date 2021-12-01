@@ -16,7 +16,7 @@ object TasksMessageMaker {
   }
 
   def createMetaDataAttachmentFile(urls: Seq[String]): AttachmentFile = {
-    val file = new File("manifest.tsv")
+    val file = File.createTempFile("manifest", ".tsv")
 
     val pW = new PrintWriter(file);
     pW.write("file_id\tfile_type\n");
@@ -27,7 +27,9 @@ object TasksMessageMaker {
     })
     pW.close()
 
-    AttachmentFile("manifest.tsv", file)
+    val attachmentFile = AttachmentFile("manifest.tsv", file)
+    file.deleteOnExit()
+    attachmentFile
   }
 
   def createMsgBody(urls: Seq[String]): String = {
