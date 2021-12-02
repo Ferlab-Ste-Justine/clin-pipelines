@@ -3,8 +3,7 @@ package bio.ferlab.clin.etl.task.ldmnotifier
 import play.api.libs.mailer.AttachmentFile
 import java.io.{File, PrintWriter}
 
-object TasksMessageMaker {
-
+object TasksMessageComposer {
   def extractFileNameFromAttachmentUrl(attachmentUrl: String): String = {
     val fileId = attachmentUrl.split("/").last
     fileId
@@ -15,9 +14,8 @@ object TasksMessageMaker {
     (fileIdAndExtension.head, fileIdAndExtension.last)
   }
 
-  def createMetaDataAttachmentFile(urls: Seq[String]): AttachmentFile = {
-    val file = File.createTempFile("manifest", ".tsv")
-
+  def createMetaDataAttachmentFile(runName: String, urls: Seq[String]): AttachmentFile = {
+    val file = File.createTempFile(s"${runName}_manifest", ".tsv")
     val pW = new PrintWriter(file);
     pW.write("file_id\tfile_type\n");
     urls.foreach(url => {
@@ -27,7 +25,7 @@ object TasksMessageMaker {
     })
     pW.close()
 
-    val attachmentFile = AttachmentFile("manifest.tsv", file)
+    val attachmentFile = AttachmentFile(s"${runName}_manifest.tsv", file)
     file.deleteOnExit()
     attachmentFile
   }
@@ -36,7 +34,7 @@ object TasksMessageMaker {
     val resourcePath = getClass.getResource("/ldmEmailPreambleText.txt")
     val source = scala.io.Source.fromFile(resourcePath.getPath)
     val preamble = try source.mkString finally source.close()
-    val specific = s"${urls.mkString("\n")}"
-    s"$preamble \n $specific"
+    val specific = urls.mkString("\n")
+    s"$preamble\n$specific"
   }
 }

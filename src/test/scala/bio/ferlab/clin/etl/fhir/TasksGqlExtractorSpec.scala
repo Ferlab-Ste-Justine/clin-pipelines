@@ -11,7 +11,12 @@ class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
     val runName = "abc"
     Then("a correct graphql query should be produced")
     val httpBody = TasksGqlExtractor.buildGqlTasksQueryHttpPostBody(runName)
-    httpBody shouldBe "{ \"query\": \"\\n{\\n\\ttaskList: TaskList(run_name: \\\"abc\\\") {\\n\\t\\tid\\n\\t    owner @flatten {\\n\\t\\t  owner: resource(type: Organization) {\\n\\t\\t\\t\\tid\\n\\t\\t\\t\\talias @first @singleton\\n\\t\\t\\t}\\n\\t\\t}\\n\\t\\t output @flatten {\\n\\t\\t\\tvalueReference @flatten {\\n\\t\\t\\t\\tattachments: resource(type: DocumentReference) {\\n                     content @flatten {\\n\\t\\t\\t\\t\\t\\t urls: attachment {\\n\\t\\t\\t\\t\\t\\t\\turl\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t}\\n\\t\\t\\t}\\n\\t\\t}\\n\\t}\\n}\\n\\n\" }"
+    val formattedBody = httpBody
+      .replace(" ","")
+      .replace("\\n","")
+      .replace("\\t","")
+    println(formattedBody)
+    formattedBody shouldBe """{"query":"{taskList:TaskList(run_name:\"abc\"){idowner@flatten{owner:resource(type:Organization){idalias@first@singletonemail:telecom@first@singleton{value}}}output@flatten{valueReference@flatten{attachments:resource(type:DocumentReference){content@flatten{urls:attachment{url}}}}}}}"}""".stripMargin
   }
 
   "A well-formed graphql response with no data" should "be handled correctly" in {

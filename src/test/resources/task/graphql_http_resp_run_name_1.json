@@ -5,7 +5,8 @@
         "id": "Task/50040/_history/1",
         "owner": {
           "id": "Organization/LDM1/_history/1",
-          "alias": "LDM1"
+          "alias": "LDM1",
+           "email": "LDM1@mail.com"
         },
         "attachments": {
           "urls": [
@@ -19,7 +20,8 @@
         "id": "Task/49606/_history/1",
         "owner": {
           "id": "Organization/LDM1/_history/1",
-          "alias": "LDM1"
+          "alias": "LDM1",
+          "email": "LDM1@mail.com"
         },
         "attachments": {
           "urls": [
@@ -36,7 +38,8 @@
         "id": "Task/49596/_history/1",
         "owner": {
           "id": "Organization/LDM2/_history/1",
-          "alias": "LDM2"
+          "alias": "LDM2",
+          "email": "LDM2@mail.com"
         },
         "attachments": {
           "urls": [
@@ -50,7 +53,8 @@
         "id": "Task/49696/_history/1",
         "owner": {
           "id": "Organization/LDM3/_history/1",
-          "alias": "LDM3"
+          "alias": "LDM3",
+          "email": "LDM3@mail.com"
         },
         "attachments": {
           "urls": [
