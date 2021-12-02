@@ -11,7 +11,7 @@ object Attachments {
   implicit val reads: Reads[Attachments] = Json.reads[Attachments]
 }
 
-case class Owner(id: String, alias: String)
+case class Owner(id: String, alias: String, email: String)
 object Owner{
   implicit val reads: Reads[Owner] = Json.reads[Owner]
 }

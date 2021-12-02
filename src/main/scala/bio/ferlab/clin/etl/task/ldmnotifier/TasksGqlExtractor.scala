@@ -8,6 +8,8 @@ import sttp.model.MediaType
 object TasksGqlExtractor {
   private type TasksResponse = Identity[Response[Either[String, String]]]
 
+  val GQL_COUNT_UPPER_BOUND = 1000 //needed right now to make graphql queries work.
+
   def buildGqlTasksQueryHttpPostBody(runName: String): String = {
     val query = s"""
                  |{
@@ -17,6 +19,9 @@ object TasksGqlExtractor {
                  |		  owner: resource(type: Organization) {
                  |				id
                  |				alias @first @singleton
+                 |        email: telecom @first @singleton {
+                 |                    value
+                 |            }
                  |			}
                  |		}
                  |		 output @flatten {
@@ -43,7 +48,7 @@ object TasksGqlExtractor {
       .headers(Map("Authorization" -> s"Bearer $token"))
       .contentType(MediaType.ApplicationJson)
       .body(buildGqlTasksQueryHttpPostBody(runName))
-      .post(uri"$baseUrl/${"$graphql"}?_count=1000")
+      .post(uri"$baseUrl/${"$graphql"}?_count=$GQL_COUNT_UPPER_BOUND")
       .send(backend)
     backend.close
     response
