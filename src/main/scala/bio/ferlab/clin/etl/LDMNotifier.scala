@@ -2,39 +2,15 @@ package bio.ferlab.clin.etl
 
 import bio.ferlab.clin.etl.mail.MailerService.{adjustBccType, makeSmtpMailer}
 import bio.ferlab.clin.etl.mail.{EmailParams, MailerService}
+import bio.ferlab.clin.etl.task.ldmnotifier.TasksGqlExtractor.{checkIfGqlResponseHasData, extractTasksWhenHasData, fetchTasksFromFhir}
 import bio.ferlab.clin.etl.task.ldmnotifier.TasksMessageComposer.{createMetaDataAttachmentFile, createMsgBody}
 import bio.ferlab.clin.etl.task.ldmnotifier.TasksTransformer.{groupAttachmentUrlsByEachOfOwnerAliases, mapLdmAliasToEmailAddress}
-import bio.ferlab.clin.etl.task.ldmnotifier.model.{Attachments, Owner, Task, Url}
 import cats.data.Validated.Invalid
-import cats.data.ValidatedNel
 import cats.implicits._
 import org.slf4j.{Logger, LoggerFactory}
+import play.api.libs.json.Json
 
 object LDMNotifier extends App {
-  def makeFakeTask(): Seq[Task] = { //FIXME: just for simple testing...will be removed
-    val Task1Ldm1 = Task(
-      id = "task1",
-      owner = Owner(id = "LDM1", alias = "LDM1", email = "LDM1@mail.com"),
-      attachments = Attachments(urls = Seq(Url(url = "https://ferload.qa.clin.ferlab.bio/2b52adba.tbi")))
-    )
-    val Task2Ldm1 = Task(
-      id = "task2",
-      owner = Owner(id = "LDM1", alias = "LDM1", email = "LDM1@mail.com"),
-      attachments = Attachments(urls = Seq(Url(url = "https://ferload.qa.clin.ferlab.bio/2b52adba.tbi"), Url(url = "https://ferload.qa.clin.ferlab.bio/f04c.tbi")))
-    )
-    val Task3Ldm2 = Task(
-      id = "task3",
-      owner = Owner(id = "LDM2", alias = "LDM2", email = "LDM2@mail.com"),
-      attachments = Attachments(urls = Seq(Url(url = "https://ferload.qa.clin.ferlab.bio/8c71.tbi")))
-    )
-    val Task4Ldm3 = Task(
-      id = "task4",
-      owner = Owner(id = "LDM3", alias = "LDM3", email = "LDM3@mail.com"),
-      attachments = Attachments(urls = Seq(Url(url = "https://ferload.qa.clin.ferlab.bio/8c71-ed041f1aad03.tbi"), Url(url = "https://ferload.qa.clin.ferlab.bio/2b52adba-f04c-ed041f1aad03.tbi")))
-    )
-    Seq(Task1Ldm1, Task2Ldm1, Task3Ldm2, Task4Ldm3)
-  }
-
   val LOGGER: Logger = LoggerFactory.getLogger(getClass)
 
   withSystemExit({
@@ -47,28 +23,51 @@ object LDMNotifier extends App {
         val runName = args(0)
         val mailer = new MailerService(makeSmtpMailer(conf))
 
-        val tasks = makeFakeTask()
-        /* FIXME
-        * val auth = new Auth(conf.keycloak)
+        /* ====>  FIXME
+          1) add auth :val auth = new Auth(conf.keycloak)
           val tasksResponses = auth.withToken((_, rpt) => fetchTasksFromFhir(conf.fhir.url, rpt, runName))
-           if (tasksResponses.body.isLeft) {
-                LOGGER.error(s"fail to fetch tasks from fhir server: $e")
-                Invalid()
-             }
+          2) fail-fast given no data
         * */
+        val tasksResponses = fetchTasksFromFhir("http://localhost:8080/fhir", "", runName)
+        if (tasksResponses.body.isLeft) {
+          LOGGER.error(s"fail to fetch tasks from fhir server")
+        }
+        val strResponseBody = tasksResponses.body.right.get
+        val rawParsedResponse = Json.parse(strResponseBody);
 
+        val eitherErrorMsgOrData = checkIfGqlResponseHasData(rawParsedResponse)
+        if (eitherErrorMsgOrData.isLeft) {
+          //FIXME exit program
+          LOGGER.error(s"Error while inspecting response: ${eitherErrorMsgOrData.left.get}")
+        }
+
+        val hasNoData = !eitherErrorMsgOrData.right.get
+        if (hasNoData) {
+          //FIXME exit program
+          LOGGER.warn(s"No found task for runName $runName")
+        }
+
+        val eitherErrorMsgOrTasks = extractTasksWhenHasData(rawParsedResponse)
+        if (eitherErrorMsgOrTasks.isLeft) {
+          //FIXME exit program
+          LOGGER.error(s"error while extracting tasks: ${eitherErrorMsgOrTasks.left.get}")
+        }
+
+        val tasks = eitherErrorMsgOrTasks.right.get
 
         val aliasToEmailAddress = mapLdmAliasToEmailAddress(tasks)
         val urlsByAlias = groupAttachmentUrlsByEachOfOwnerAliases(tasks)
-        val results: List[ValidationResult[Unit]] = urlsByAlias.map{ case(ldm, urls) =>
-          val toLDM = aliasToEmailAddress(ldm)
+
+        val validations: List[ValidationResult[Unit]] = urlsByAlias.map { case (ldmAlias, urls) =>
+          val toLDM = aliasToEmailAddress(ldmAlias)
           val blindCC = adjustBccType(conf)
+
           withExceptions {
             mailer.sendEmail(EmailParams(
               toLDM,
               conf.mailer.from,
               adjustBccType(conf),
-              "subjectTODO", //FIXME find common subject
+              "Nouvelles données du CQGC",
               createMsgBody(urls),
               Seq(createMetaDataAttachmentFile(runName, urls))
             ))
@@ -76,9 +75,12 @@ object LDMNotifier extends App {
             LOGGER.info(s"email sent to $toLDM $extraInfoIfAvailable")
           }
         }.toList
-        val sequence: ValidationResult[List[Unit]] = results.sequence
-        sequence
 
+        val validationResults: ValidationResult[List[Unit]] = validations.sequence
+        if (validationResults.isInvalid) {
+          LOGGER.error("Error(s) occurred while sending email(s)")
+        }
+        validationResults
       }
     }
   })

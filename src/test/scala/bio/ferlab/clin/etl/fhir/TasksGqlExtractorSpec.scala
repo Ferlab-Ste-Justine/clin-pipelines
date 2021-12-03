@@ -16,7 +16,7 @@ class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
       .replace("\\n","")
       .replace("\\t","")
     println(formattedBody)
-    formattedBody shouldBe """{"query":"{taskList:TaskList(run_name:\"abc\"){idowner@flatten{owner:resource(type:Organization){idalias@first@singletonemail:telecom@first@singleton{value}}}output@flatten{valueReference@flatten{attachments:resource(type:DocumentReference){content@flatten{urls:attachment{url}}}}}}}"}""".stripMargin
+    formattedBody shouldBe """{"query":"{taskList:TaskList(run_name:\"abc\"){idowner@flatten{owner:resource(type:Organization){idalias@first@singletontelecom@flatten@first@singleton{email:value}}}output@flatten{valueReference@flatten{attachments:resource(type:DocumentReference){content@flatten{urls:attachment{url}}}}}}}"}""".stripMargin
   }
 
   "A well-formed graphql response with no data" should "be handled correctly" in {
