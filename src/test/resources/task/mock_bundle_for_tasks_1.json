@@ -302,6 +302,10 @@
         "name": "LDM CHU Ste-Justine",
         "alias": [
           "LDM-CHUSJ"
+        ],
+        "telecom": [
+          { "system" : "email",
+            "value" : "abc@mail.com"}
         ]
       },
       "request": {

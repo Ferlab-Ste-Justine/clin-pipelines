@@ -1,6 +1,5 @@
 package bio.ferlab.clin
 
-import bio.ferlab.clin.etl.LDMNotifier.LOGGER
 import bio.ferlab.clin.etl.conf.Conf
 import bio.ferlab.clin.etl.s3.S3Utils
 import cats.data.Validated.{Invalid, Valid}
@@ -91,7 +90,6 @@ package object etl {
       case Success(a) =>
         a.validNel
       case Failure(e) =>
-        LOGGER.error("", e)
         e.getMessage.invalidNel
     }
   }

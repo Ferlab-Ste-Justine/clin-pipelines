@@ -19,9 +19,9 @@ object TasksGqlExtractor {
                  |		  owner: resource(type: Organization) {
                  |				id
                  |				alias @first @singleton
-                 |        email: telecom @first @singleton {
-                 |                    value
-                 |            }
+                 |        telecom @flatten @first @singleton {
+                 |            email: value
+                 |          }
                  |			}
                  |		}
                  |		 output @flatten {
