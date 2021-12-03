@@ -1,14 +1,14 @@
 package bio.ferlab.clin.etl
 
-import bio.ferlab.clin.etl.mail.{EmailParams, MailerService}
 import bio.ferlab.clin.etl.mail.MailerService.{adjustBccType, makeSmtpMailer}
+import bio.ferlab.clin.etl.mail.{EmailParams, MailerService}
 import bio.ferlab.clin.etl.task.ldmnotifier.TasksMessageComposer.{createMetaDataAttachmentFile, createMsgBody}
 import bio.ferlab.clin.etl.task.ldmnotifier.TasksTransformer.{groupAttachmentUrlsByEachOfOwnerAliases, mapLdmAliasToEmailAddress}
 import bio.ferlab.clin.etl.task.ldmnotifier.model.{Attachments, Owner, Task, Url}
-import cats.data.Validated.{Invalid, valid}
+import cats.data.Validated.Invalid
+import cats.data.ValidatedNel
+import cats.implicits._
 import org.slf4j.{Logger, LoggerFactory}
-
-import scala.util.{Failure, Success, Try}
 
 object LDMNotifier extends App {
   def makeFakeTask(): Seq[Task] = { //FIXME: just for simple testing...will be removed
@@ -60,30 +60,25 @@ object LDMNotifier extends App {
 
         val aliasToEmailAddress = mapLdmAliasToEmailAddress(tasks)
         val urlsByAlias = groupAttachmentUrlsByEachOfOwnerAliases(tasks)
-        urlsByAlias.foreach(aliasToUrl => {
-          val toLDM = aliasToEmailAddress(aliasToUrl._1)
-          val urls = aliasToUrl._2
-
+        val results: List[ValidationResult[Unit]] = urlsByAlias.map{ case(ldm, urls) =>
+          val toLDM = aliasToEmailAddress(ldm)
           val blindCC = adjustBccType(conf)
-
-          val sent = Try(mailer.sendEmail(EmailParams(
-            toLDM,
-            conf.mailer.from,
-            adjustBccType(conf),
-            "subjectTODO", //FIXME find common subject
-            createMsgBody(urls),
-            Seq(createMetaDataAttachmentFile(runName, urls))
-          )))
-          sent match {
-            case Success(_) =>
-              val extraInfoIfAvailable = if (blindCC.isEmpty) "" else s"and ${blindCC.mkString(",")}"
-              LOGGER.info(s"email sent to $toLDM $extraInfoIfAvailable")
-            case Failure(e) =>
-              LOGGER.error(s"failed to send email: $e")
-              Invalid(e) //FIXME exit on first failure
+          withExceptions {
+            mailer.sendEmail(EmailParams(
+              toLDM,
+              conf.mailer.from,
+              adjustBccType(conf),
+              "subjectTODO", //FIXME find common subject
+              createMsgBody(urls),
+              Seq(createMetaDataAttachmentFile(runName, urls))
+            ))
+            val extraInfoIfAvailable = if (blindCC.isEmpty) "" else s"and ${blindCC.mkString(",")}"
+            LOGGER.info(s"email sent to $toLDM $extraInfoIfAvailable")
           }
-        })
-        valid()
+        }.toList
+        val sequence: ValidationResult[List[Unit]] = results.sequence
+        sequence
+
       }
     }
   })

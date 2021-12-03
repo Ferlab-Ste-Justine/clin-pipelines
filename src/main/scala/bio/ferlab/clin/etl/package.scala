@@ -1,5 +1,6 @@
 package bio.ferlab.clin
 
+import bio.ferlab.clin.etl.LDMNotifier.LOGGER
 import bio.ferlab.clin.etl.conf.Conf
 import bio.ferlab.clin.etl.s3.S3Utils
 import cats.data.Validated.{Invalid, Valid}
@@ -11,10 +12,11 @@ import software.amazon.awssdk.services.s3.S3Client
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
+import scala.util.{Failure, Success, Try}
 
 package object etl {
   val LOGGER: Logger = LoggerFactory.getLogger(getClass)
-  type ValidationResult[A] = Validated[NonEmptyList[String], A]
+  type ValidationResult[A] = ValidatedNel[String, A]
 
   def withConf[T](b: Conf => ValidationResult[T]): ValidationResult[T] = {
     Conf.readConf().andThen(b)
@@ -25,7 +27,7 @@ package object etl {
       b match {
         case Invalid(NonEmptyList(h, t)) =>
           LOGGER.error(h)
-          t.foreach(LOGGER.info)
+          t.foreach(LOGGER.error)
         case Validated.Valid(_) => LOGGER.info("Success!")
       }
       b
@@ -76,10 +78,21 @@ package object etl {
     v.toList.sequence_.map(_ => f)
   }
 
+
   def isValid[A, E](f: => A, errors: Seq[E]): ValidatedNel[E, A] = {
     errors match {
       case Nil => f.validNel[E]
       case s => NonEmptyList.fromList(s.toList).get.invalid[A]
+    }
+  }
+
+  def withExceptions[A](f: => A): ValidationResult[A] = {
+    Try(f) match {
+      case Success(a) =>
+        a.validNel
+      case Failure(e) =>
+        LOGGER.error("", e)
+        e.getMessage.invalidNel
     }
   }
 
