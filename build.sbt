@@ -28,11 +28,12 @@ libraryDependencies ++= Seq(
 )
 
 Test / fork := true
+Test / testForkedParallel := false
 
 assembly / assemblyMergeStrategy:= {
   case PathList("META-INF", xs@_*) => MergeStrategy.discard
   case x => MergeStrategy.first
 }
 assembly / test := {}
-
+parallelExecution / test := false
 assembly / assemblyJarName:= "clin-pipelines.jar"

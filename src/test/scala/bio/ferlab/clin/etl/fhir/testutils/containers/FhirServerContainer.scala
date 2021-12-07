@@ -1,5 +1,7 @@
 package bio.ferlab.clin.etl.fhir.testutils.containers
 
+import bio.ferlab.clin.etl.fhir.testutils.FhirTestUtils
+import ca.uhn.fhir.rest.client.api.IGenericClient
 import com.dimafeng.testcontainers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 
@@ -23,6 +25,9 @@ case object FhirServerContainer extends OurContainer {
     "HAPI_LOGGING_INTERCEPTOR_SERVER_ENABLED" -> "false",
     "HAPI_LOGGING_INTERCEPTOR_CLIENT_ENABLED" -> "false",
     "HAPI_VALIDATE_RESPONSES_ENABLED" -> "false",
+    "HAPI_FHIR_ALLOW_MULTIPLE_DELETE" -> "true",
+    "HAPI_FHIR_ALLOW_CASCADING_DELETES" -> "true",
+    "HAPI_FHIR_EXPUNGE_ENABLED" -> "true",
     "KEYCLOAK_ENABLED"-> "false"
   )
   val name = "clin-pipeline-fhir-test"
@@ -35,5 +40,16 @@ case object FhirServerContainer extends OurContainer {
     env = fhirEnv,
     labels = Map("name" -> name)
   )
+  private var initialized = false
+
+  def init()( implicit fhirClient: IGenericClient): Unit = {
+
+    if (!initialized) {
+      FhirTestUtils.init()
+      initialized = true
+      //Let Fhir ingest its data structure, specially search parameter
+      Thread.sleep(4000)
+    }
+  }
 
 }

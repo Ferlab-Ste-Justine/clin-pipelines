@@ -2,6 +2,7 @@ package bio.ferlab.clin
 
 import bio.ferlab.clin.etl.conf.Conf
 import bio.ferlab.clin.etl.s3.S3Utils
+import cats.FlatMap
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.s3.S3Client
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 package object etl {
@@ -92,6 +94,24 @@ package object etl {
       case Failure(e) =>
         e.getMessage.invalidNel
     }
+  }
+
+  implicit val vr: FlatMap[ValidationResult] = new FlatMap[ValidationResult] {
+    override def flatMap[A, B](fa: ValidationResult[A])(f: A => ValidationResult[B]): ValidationResult[B] = fa match {
+      case Valid(a) => f(a)
+      case Invalid(e) => e.invalid[B]
+    }
+
+
+    override def map[A, B](fa: ValidationResult[A])(f: A => B): ValidationResult[B] =  fa.map(f)
+
+    @tailrec
+    override def tailRecM[A, B](a: A)(f: A => ValidationResult[Either[A, B]]): ValidationResult[B] =  f(a) match {
+      case Invalid(e) => e.invalid[B]
+      case Valid(Left(a)) => tailRecM(a)(f)
+      case Valid(Right(a)) => a.validNel[String]
+    }
+
   }
 
   implicit class ValidatedNelExtension[A, B](v1: ValidatedNel[A, B]) {

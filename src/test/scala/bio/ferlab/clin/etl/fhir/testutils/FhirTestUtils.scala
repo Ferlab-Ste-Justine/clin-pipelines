@@ -12,6 +12,7 @@ import java.io.File
 import java.net.URL
 import java.time.{LocalDate, ZoneId}
 import java.util.{Collections, Date}
+import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -20,11 +21,11 @@ object FhirTestUtils {
   val ROOT_REMOTE_EXTENSION = "https://raw.githubusercontent.com/Ferlab-Ste-Justine/clin-fhir/master/site_root/input/resources/"
   val LOGGER: Logger = LoggerFactory.getLogger(getClass)
 
-  def loadOrganizations()(implicit fhirClient: IGenericClient): String = {
+  def loadOrganizations(alias:String = "CHUSJ")(implicit fhirClient: IGenericClient): String = {
     val org: Organization = new Organization()
     org.setId("111")
     org.setName("CHU Ste-Justine")
-    org.setAlias(Collections.singletonList(new StringType("CHUSJ")))
+    org.setAlias(Collections.singletonList(new StringType(alias)))
 
     val id: IIdType = fhirClient.create().resource(org).execute().getId
     LOGGER.info("Organization created with id : " + id.getIdPart)
@@ -53,7 +54,7 @@ object FhirTestUtils {
     pt.addName().setFamily(lastName).addGiven(firstName)
     pt.setIdElement(IdType.of(id1))
     pt.setGender(gender)
-
+    pt.getMeta.addTag().setCode("test")
     val id = fhirClient.create().resource(pt).execute().getId
 
     LOGGER.info("Patient created with id : " + id.getIdPart)
@@ -105,13 +106,26 @@ object FhirTestUtils {
 
   def clearAll()(implicit fhirClient: IGenericClient): Unit = {
     val inParams = new Parameters()
-    inParams.addParameter().setName("expungeEverything").setValue(new BooleanType(true))
-    fhirClient
-      .operation()
-      .onServer()
-      .named("$expunge")
-      .withParameters(inParams)
-      .execute()
+    inParams
+      .addParameter().setName("expungePreviousVersions").setValue(new BooleanType(true))
+    inParams
+      .addParameter().setName("expungeDeletedResources").setValue(new BooleanType(true))
+    Seq("Patient", "DocumentReference", "Organization", "Specimen", "Task", "ServiceRequest").foreach { r =>
+      val t = fhirClient.delete()
+        .resourceConditionalByUrl(s"$r?_lastUpdated=ge2017-01-01&_cascade=delete")
+        .execute()
+
+      println(s"Clean $r")
+      fhirClient
+        .operation()
+        .onType(r)
+        .named("$expunge")
+        .withParameters(inParams)
+        .execute()
+
+    }
+
+
   }
 
   def init()(implicit fhirClient: IGenericClient): Unit = {
@@ -123,6 +137,22 @@ object FhirTestUtils {
     LOGGER.info("Init fhir container with extensions ...")
 
     //Sequential
+
+
+    Seq(
+      "terminology/CodeSystem-specimen-type.json",
+      "terminology/CodeSystem-genome-build.json",
+      "terminology/CodeSystem-experimental-strategy.json",
+      "terminology/CodeSystem-document-format.json",
+      "terminology/CodeSystem-data-type.json",
+      "terminology/CodeSystem-data-category.json",
+      "terminology/ValueSet-specimen-type.json",
+      "terminology/ValueSet-genome-build.json",
+      "terminology/ValueSet-data-type.json",
+      "terminology/ValueSet-data-category.json",
+      "terminology/ValueSet-blood-relationship.json",
+      "terminology/ValueSet-analysis-type.json",
+      "terminology/ValueSet-age-at-onset.json").foreach(downloadAndCreate)
     Seq(
       "extensions/StructureDefinition-workflow.json",
       "extensions/StructureDefinition-sequencing-experiment.json",
@@ -131,23 +161,6 @@ object FhirTestUtils {
       "search/SearchParameter-run-name.json"
 
     ).foreach(downloadAndCreate)
-
-    //Parallel
-    Seq("terminology/CodeSystem-variant-type.json",
-      "terminology/CodeSystem-specimen-type.json",
-      "terminology/CodeSystem-genome-build.json",
-      "terminology/CodeSystem-experimental-strategy.json",
-      "terminology/CodeSystem-document-format.json",
-      "terminology/CodeSystem-data-type.json",
-      "terminology/CodeSystem-data-category.json",
-      "terminology/ValueSet-variant-type.json",
-      "terminology/ValueSet-specimen-type.json",
-      "terminology/ValueSet-genome-build.json",
-      "terminology/ValueSet-data-type.json",
-      "terminology/ValueSet-data-category.json",
-      "terminology/ValueSet-blood-relationship.json",
-      "terminology/ValueSet-analysis-type.json",
-      "terminology/ValueSet-age-at-onset.json").foreach(downloadAndCreate)
 
 
   }

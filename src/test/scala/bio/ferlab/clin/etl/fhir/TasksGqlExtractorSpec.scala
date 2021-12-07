@@ -23,12 +23,8 @@ class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
     Given("a correctly parsed json containing no data ({ 'data': {} })")
     val parsed = FhirTestUtils.parseJsonFromResource("task/graphql_http_resp_empty_data_no_errors.json")
     val eitherErrorOrData = TasksGqlExtractor.checkIfGqlResponseHasData(parsed.get)
-    Then("no error is reported")
-    val hasError = eitherErrorOrData.isLeft
-    hasError shouldBe false
-    And("reports that there is no data, as well")
-    val hasData = eitherErrorOrData.right.get
-    hasData shouldBe false
+    Then("error is reported")
+    assert(eitherErrorOrData.isLeft)
   }
 
   "A well-formed graphql response with data" should "give task(s)" in {
@@ -37,15 +33,9 @@ class TasksGqlExtractorSpec extends FlatSpec with GivenWhenThen {
 
     Then("the tasks should be extracted with no errors")
     val eitherErrorOrData = TasksGqlExtractor.checkIfGqlResponseHasData(parsed.get)
-    eitherErrorOrData.isLeft shouldBe false
     eitherErrorOrData.isRight shouldBe true
 
-    val eitherErrorOrTasks = TasksGqlExtractor.extractTasksWhenHasData(parsed.get)
-    eitherErrorOrTasks.isLeft shouldBe false
 
-    And("their size be the same as in the raw data")
-    val tasks = eitherErrorOrTasks.right.get
-    tasks.size shouldBe 4
   }
 }
 
