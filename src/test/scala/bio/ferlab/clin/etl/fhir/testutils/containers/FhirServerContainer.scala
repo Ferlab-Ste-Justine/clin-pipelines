@@ -28,7 +28,8 @@ case object FhirServerContainer extends OurContainer {
     "HAPI_FHIR_ALLOW_MULTIPLE_DELETE" -> "true",
     "HAPI_FHIR_ALLOW_CASCADING_DELETES" -> "true",
     "HAPI_FHIR_EXPUNGE_ENABLED" -> "true",
-    "KEYCLOAK_ENABLED"-> "false"
+    "KEYCLOAK_ENABLED" -> "false",
+    "HAPI_FHIR_REUSE_CACHED_SEARCH_RESULTS_MILLIS" -> "0"
   )
   val name = "clin-pipeline-fhir-test"
 
@@ -42,7 +43,7 @@ case object FhirServerContainer extends OurContainer {
   )
   private var initialized = false
 
-  def init()( implicit fhirClient: IGenericClient): Unit = {
+  def init()(implicit fhirClient: IGenericClient): Unit = {
 
     if (!initialized) {
       FhirTestUtils.init()

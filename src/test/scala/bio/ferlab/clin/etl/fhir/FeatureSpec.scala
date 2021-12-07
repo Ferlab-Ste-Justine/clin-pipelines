@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 import scala.collection.JavaConverters._
 import scala.io.Source
-import scala.util.Random
 
 class FeatureSpec extends FlatSpec with WholeStackSuite with Matchers {
 
@@ -50,8 +49,6 @@ class FeatureSpec extends FlatSpec with WholeStackSuite with Matchers {
       result.isValid shouldBe true
       val resultFiles = list(outputBucket, outputPrefix)
       resultFiles.size shouldBe 7
-
-      // Validate specimen and sample
       val searchSpecimens = searchFhir("Specimen")
       searchSpecimens.getTotal shouldBe 2
       searchSpecimens.getEntry.asScala.foreach { be =>
@@ -172,4 +169,5 @@ class FeatureSpec extends FlatSpec with WholeStackSuite with Matchers {
       .summaryMode(SummaryEnum.TRUE)
       .execute()
   }
+
 }
