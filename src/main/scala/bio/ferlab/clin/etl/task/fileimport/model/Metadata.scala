@@ -32,9 +32,6 @@ object Metadata {
 }
 
 sealed trait Metadata {
-  def experiment: Experiment
-
-  def workflow: Workflow
 
   def analyses: Seq[Analysis]
 }
@@ -91,6 +88,10 @@ sealed trait Analysis {
   val labAliquotId: String
   val patient: InputPatient
   val files: FilesAnalysis
+
+  def experiment: Experiment
+
+  def workflow: Workflow
 }
 
 
@@ -103,7 +104,9 @@ case class SimpleAnalysis(
                            clinServiceRequestId: String,
                            labAliquotId: String,
                            patient: SimplePatient,
-                           files: FilesAnalysis
+                           files: FilesAnalysis,
+                           experiment: Experiment,
+                           workflow: Workflow
                          ) extends Analysis
 
 object SimpleAnalysis {
@@ -121,7 +124,9 @@ case class FullAnalysis(
                          labAliquotId: String,
                          patient: FullPatient,
                          files: FilesAnalysis,
-                         panelCode: String
+                         panelCode: String,
+                         experiment: Experiment,
+                         workflow: Workflow
                        ) extends Analysis
 
 object FullAnalysis {

@@ -38,7 +38,9 @@ object MetadataTestUtils {
     ldmServiceRequestId = "clin_prescription_id",
     labAliquotId = "nanuq_sample_id",
     panelCode = "MMG",
-    files = defaultFilesAnalysis
+    files = defaultFilesAnalysis,
+    experiment = defaultExperiment,
+    workflow = defaultWorkflow
   )
 
   val defaultFilesAnalysis: FilesAnalysis = FilesAnalysis(
@@ -95,7 +97,9 @@ object MetadataTestUtils {
     sampleType = Some("DNA"),
     clinServiceRequestId = "clin_prescription_id",
     labAliquotId = "nanuq_sample_id",
-    files = defaultFilesAnalysis
+    files = defaultFilesAnalysis,
+    experiment = defaultExperiment,
+    workflow = defaultWorkflow
   )
   val defaultAnalysisWithOptionals: SimpleAnalysis = SimpleAnalysis(
     patient = defaultPatient("clin_id"),
@@ -106,7 +110,9 @@ object MetadataTestUtils {
     sampleType = Some("DNA"),
     clinServiceRequestId = "clin_prescription_id",
     labAliquotId = "nanuq_sample_id",
-    files = defaultFilesAnalysisWithOptionals
+    files = defaultFilesAnalysisWithOptionals,
+    experiment = defaultExperiment,
+    workflow = defaultWorkflow
   )
   val defaultExperiment: Experiment = Experiment(
     platform = Some("Illumina"),
