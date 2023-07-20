@@ -34,11 +34,13 @@ object MigrateServiceRequest {
     // list of resources we want to update
     var res: Seq[BundleEntryComponent] = Seq()
     sequencings.foreach(sequencing => {
-      var code = sequencing.getCode.getCoding.get(0).getCode
-      if (code != "TRATU" && code != "EXTUM") {
-        val newCode = new Coding("http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code", "75020", "Normal Exome Sequencing")
-        sequencing.getCode.getCoding.add(newCode)
-        res = res ++ FhirUtils.bundleUpdate(Seq(sequencing))
+      if (sequencing.getCode.getCoding.size() == 1) {
+        var code = sequencing.getCode.getCoding.get(0).getCode
+        if (!code.equals("TRATU") && !code.equals("EXTUM")) {
+          val newCode = new Coding("http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code", "75020", "Normal Exome Sequencing")
+          sequencing.getCode.getCoding.add(newCode)
+          res = res ++ FhirUtils.bundleUpdate(Seq(sequencing))
+        }
       }
     })
     val bundle = TBundle(res.toList)
